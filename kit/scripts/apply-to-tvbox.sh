@@ -134,6 +134,9 @@ fi
 # 6) 首页接入豆瓣海报墙
 python3 "$KIT_DIR/scripts/integrate-douban-home.py" "$DST" || true
 
+# 7) 「光影」品牌化：包名（与已有 TVBox 共存）、应用名、图标
+python3 "$KIT_DIR/scripts/branding.py" "$DST"
+
 echo
 echo "完成。接下来："
 echo "  1. 在 $DST/local.properties 里加 gh.owner / gh.repo"
