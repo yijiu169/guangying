@@ -122,10 +122,14 @@ else
   echo "  = build.gradle 已包含更新配置（跳过）"
 fi
 
-# 5) CI
-mkdir -p "$DST/.github/workflows"
-cp "$KIT_DIR/.github/workflows/build-release.yml" "$DST/.github/workflows/build-release.yml"
-echo "  + .github/workflows/build-release.yml"
+# 5) CI（可选：仅当 kit 里带了「完整工程」版 workflow 时才复制）
+if [ -f "$KIT_DIR/.github/workflows/build-release.yml" ]; then
+  mkdir -p "$DST/.github/workflows"
+  cp "$KIT_DIR/.github/workflows/build-release.yml" "$DST/.github/workflows/build-release.yml"
+  echo "  + .github/workflows/build-release.yml"
+else
+  echo "  = 跳过 workflow（补丁仓库模式，构建由本仓库的 release.yml 负责）"
+fi
 
 # 6) 首页接入豆瓣海报墙
 python3 "$KIT_DIR/scripts/integrate-douban-home.py" "$DST" || true
