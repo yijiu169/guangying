@@ -40,7 +40,10 @@ jobs:
           echo "upstream commit: $(git -C src rev-parse --short HEAD)"
 
       - name: Apply update + douban patch
-        run: bash kit/scripts/apply-to-tvbox.sh src
+        run: |
+          # 防御：补丁仓库在 Windows 上打包时可能带 CRLF，Linux 上 bash 会直接语法报错
+          find kit -type f \( -name '*.sh' -o -name '*.py' \) -exec sed -i 's/\r$//' {} +
+          bash kit/scripts/apply-to-tvbox.sh src
 
       - name: Configure repo for self-update
         run: |
