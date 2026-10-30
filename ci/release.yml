@@ -1,0 +1,121 @@
+name: Build & Release
+
+# 本仓库只保存「补丁 + 构建脚本」，构建时从上游拉 TVBox 源码再打补丁，
+# 因此仓库体积很小，也不需要提交任何第三方二进制。
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '标记为强制更新（客户端不可跳过）'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+      KS_PWD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PWD: ${{ secrets.KEY_PASSWORD }}
+    steps:
+      - name: Checkout patch repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Fetch upstream TVBox
+        run: |
+          git clone --depth 1 https://github.com/q215613905/TVBoxOS.git src
+          echo "upstream commit: $(git -C src rev-parse --short HEAD)"
+
+      - name: Apply update + douban patch
+        run: bash kit/scripts/apply-to-tvbox.sh src
+
+      - name: Configure repo for self-update
+        run: |
+          printf 'gh.owner=%s\ngh.repo=%s\n' "${GITHUB_REPOSITORY_OWNER}" "${GITHUB_REPOSITORY#*/}" > src/local.properties
+          cat src/local.properties
+
+      - name: Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('src/**/*.gradle*', 'src/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      - name: Compute version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VNAME="${GITHUB_REF_NAME#v}"
+            TAG="${GITHUB_REF_NAME}"
+          else
+            VNAME="$(date -u +%Y.%m.%d.%H)"
+            TAG="v${VNAME}"
+          fi
+          VCODE="$(date -u +%y%m%d%H)"
+          echo "name=$VNAME" >> "$GITHUB_OUTPUT"
+          echo "code=$VCODE" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "versionName=$VNAME versionCode=$VCODE tag=$TAG"
+
+      - name: Restore keystore
+        if: env.KS_B64 != ''
+        run: echo "$KS_B64" | base64 -d > src/release.keystore
+
+      - name: Build release APK
+        env:
+          VERSION_CODE: ${{ steps.ver.outputs.code }}
+          VERSION_NAME: ${{ steps.ver.outputs.name }}
+        working-directory: src
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleJavaRelease --no-daemon --stacktrace
+
+      - name: Collect artifacts
+        env:
+          VCODE: ${{ steps.ver.outputs.code }}
+          VNAME: ${{ steps.ver.outputs.name }}
+          VTAG: ${{ steps.ver.outputs.tag }}
+          VFORCE: ${{ github.event.inputs.force || 'false' }}
+        run: |
+          set -e
+          APK=$(find src/app/build/outputs/apk -name "*.apk" | grep -i java | grep -vi python | head -1)
+          if [ -z "$APK" ]; then APK=$(find src/app/build/outputs/apk -name "*.apk" | head -1); fi
+          if [ -z "$APK" ]; then echo "找不到 APK，构建可能失败"; exit 1; fi
+          echo "picked: $APK"
+          cp "$APK" TVBox-latest.apk
+          python3 -c "import json,os,hashlib,datetime;p='TVBox-latest.apk';d={'versionCode':int(os.environ['VCODE']),'versionName':os.environ['VNAME'],'tag':os.environ['VTAG'],'notes':'TVBox '+os.environ['VNAME'],'apk':'TVBox-latest.apk','size':os.path.getsize(p),'sha256':hashlib.sha256(open(p,'rb').read()).hexdigest(),'force':os.environ.get('VFORCE','false').lower()=='true','publishedAt':datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')};json.dump(d,open('version.json','w'),ensure_ascii=False,indent=2)"
+          cat version.json
+          ls -lh TVBox-latest.apk version.json
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: TVBox ${{ steps.ver.outputs.name }}
+          draft: false
+          prerelease: false
+          files: |
+            TVBox-latest.apk
+            version.json
+          body: |
+            ## TVBox ${{ steps.ver.outputs.name }}
+
+            - versionCode: `${{ steps.ver.outputs.code }}`
+            - 上游: `q215613905/TVBoxOS`
+
+            客户端启动时读取本 Release 的 `version.json` 自动升级（直连不通自动走镜像）。
