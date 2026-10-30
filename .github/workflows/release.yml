@@ -75,14 +75,39 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "versionName=$VNAME versionCode=$VCODE tag=$TAG"
 
-      - name: Restore keystore
-        if: env.KS_B64 != ''
-        run: echo "$KS_B64" | base64 -d > src/release.keystore
+      - name: Keystore cache (无 Secrets 时用它保证多次构建签名一致)
+        uses: actions/cache@v4
+        with:
+          path: .ci
+          key: tvbox-ci-keystore-v1
+
+      - name: Prepare keystore
+        run: |
+          mkdir -p .ci
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > .ci/release.keystore
+            echo "使用仓库 Secrets 中的签名"
+          else
+            if [ ! -f .ci/release.keystore ]; then
+              echo "未配置 Secrets，生成 CI 固定签名（缓存保证后续构建一致）"
+              keytool -genkeypair -v -keystore .ci/release.keystore -alias tvbox \
+                -keyalg RSA -keysize 2048 -validity 10000 \
+                -storepass tvboxcipass -keypass tvboxcipass \
+                -dname "CN=TVBox, OU=Dev, O=TVBox, L=CN, S=CN, C=CN"
+            else
+              echo "命中缓存，复用已有签名"
+            fi
+          fi
+          cp .ci/release.keystore src/release.keystore
+          ls -l src/release.keystore
 
       - name: Build release APK
         env:
           VERSION_CODE: ${{ steps.ver.outputs.code }}
           VERSION_NAME: ${{ steps.ver.outputs.name }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'tvboxcipass' }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'tvbox' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'tvboxcipass' }}
         working-directory: src
         run: |
           chmod +x gradlew
