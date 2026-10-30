@@ -88,8 +88,10 @@ jobs:
           VFORCE: ${{ github.event.inputs.force || 'false' }}
         run: |
           set -e
-          APK=$(find app/build/outputs/apk -name "*java-release*.apk" | head -1)
+          # 产物名形如 TVBox_release-java.apk（buildType-flavor），优先取 java 变体
+          APK=$(find app/build/outputs/apk -name "*.apk" | grep -i "java" | grep -vi "python" | head -1)
           if [ -z "$APK" ]; then APK=$(find app/build/outputs/apk -name "*.apk" | head -1); fi
+          if [ -z "$APK" ]; then echo "没有找到 APK，构建可能失败"; exit 1; fi
           echo "picked: $APK"
           cp "$APK" TVBox-latest.apk
           python3 -c "import json,os,hashlib,datetime;p='TVBox-latest.apk';d={'versionCode':int(os.environ['VCODE']),'versionName':os.environ['VNAME'],'tag':os.environ['VTAG'],'notes':'自动构建 '+os.environ['VNAME'],'apk':'TVBox-latest.apk','size':os.path.getsize(p),'sha256':hashlib.sha256(open(p,'rb').read()).hexdigest(),'force':os.environ.get('VFORCE','false').lower()=='true','publishedAt':datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')};json.dump(d,open('version.json','w'),ensure_ascii=False,indent=2)"
