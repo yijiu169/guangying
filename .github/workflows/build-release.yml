@@ -1,0 +1,115 @@
+name: Build & Release
+
+# 触发：
+#   1. 打 tag 推送：git tag v1.0.9 && git push origin v1.0.9
+#   2. 手动运行（Actions -> Build & Release -> Run workflow）
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '标记为强制更新（客户端提示不可跳过）'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+      KS_PWD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PWD: ${{ secrets.KEY_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      - name: Compute version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VNAME="${GITHUB_REF_NAME#v}"
+            TAG="${GITHUB_REF_NAME}"
+          else
+            VNAME="$(date -u +%Y.%m.%d.%H)"
+            TAG="v${VNAME}"
+          fi
+          # versionCode 用 yyMMddHH，8 位、天然递增，远离 int 上限
+          VCODE="$(date -u +%y%m%d%H)"
+          echo "name=$VNAME" >> "$GITHUB_OUTPUT"
+          echo "code=$VCODE" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "versionName=$VNAME versionCode=$VCODE tag=$TAG"
+
+      - name: Restore keystore
+        if: env.KS_B64 != ''
+        run: |
+          echo "$KS_B64" | base64 -d > release.keystore
+          ls -l release.keystore
+
+      - name: Build release APK (java flavor)
+        env:
+          VERSION_CODE: ${{ steps.ver.outputs.code }}
+          VERSION_NAME: ${{ steps.ver.outputs.name }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          # 只构建 java 变体：python 变体依赖 chaquo 工具链，CI 上更易失败
+          ./gradlew :app:assembleJavaRelease --no-daemon --stacktrace
+
+      - name: Collect artifacts
+        id: pack
+        env:
+          VCODE: ${{ steps.ver.outputs.code }}
+          VNAME: ${{ steps.ver.outputs.name }}
+          VTAG: ${{ steps.ver.outputs.tag }}
+          VFORCE: ${{ github.event.inputs.force || 'false' }}
+        run: |
+          set -e
+          APK=$(find app/build/outputs/apk -name "*java-release*.apk" | head -1)
+          if [ -z "$APK" ]; then APK=$(find app/build/outputs/apk -name "*.apk" | head -1); fi
+          echo "picked: $APK"
+          cp "$APK" TVBox-latest.apk
+          python3 -c "import json,os,hashlib,datetime;p='TVBox-latest.apk';d={'versionCode':int(os.environ['VCODE']),'versionName':os.environ['VNAME'],'tag':os.environ['VTAG'],'notes':'自动构建 '+os.environ['VNAME'],'apk':'TVBox-latest.apk','size':os.path.getsize(p),'sha256':hashlib.sha256(open(p,'rb').read()).hexdigest(),'force':os.environ.get('VFORCE','false').lower()=='true','publishedAt':datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')};json.dump(d,open('version.json','w'),ensure_ascii=False,indent=2)"
+          cat version.json
+          ls -lh TVBox-latest.apk version.json
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: TVBox ${{ steps.ver.outputs.name }}
+          draft: false
+          prerelease: false
+          files: |
+            TVBox-latest.apk
+            version.json
+          body: |
+            ## TVBox ${{ steps.ver.outputs.name }}
+
+            - versionCode: `${{ steps.ver.outputs.code }}`
+            - tag: `${{ steps.ver.outputs.tag }}`
+
+            客户端启动时会自动读取本 Release 的 `version.json` 并静默下载升级。
