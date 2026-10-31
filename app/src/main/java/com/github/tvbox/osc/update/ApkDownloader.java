@@ -2,6 +2,7 @@ package com.github.tvbox.osc.update;
 
 import android.content.Context;
 import android.os.Environment;
+import android.text.TextUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,6 +12,7 @@ import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
 
 /**
@@ -81,7 +83,7 @@ public final class ApkDownloader {
             return out;
         }
 
-        List<String> chain = MirrorResolver.chain(ctx, info.apkUrl);
+        List<String> chain = buildChain(ctx, info);
         int limit = Math.min(chain.size(), UpdateConfig.MAX_MIRROR_TRY + 1);
         IOException last = null;
 
@@ -102,6 +104,37 @@ public final class ApkDownloader {
             }
         }
         throw last != null ? last : new IOException("下载失败");
+    }
+
+    /**
+     * 构造下载候选链，优先级从高到低：
+     *   1. 直连（apkUrl）
+     *   2. 服务端在 version.json 给的完整 APK 地址（自建 CDN，可完全脱离 GitHub）
+     *   3. 服务端给的 GitHub 代理前缀（包裹 apkUrl）
+     *   4. 内置镜像链（MIRROR_PREFIX，跳过已加入的直连）
+     * 任何一条成功都会被记住，下次优先。
+     */
+    private static List<String> buildChain(Context ctx, ReleaseInfo info) {
+        List<String> chain = new ArrayList<>();
+        chain.add(info.apkUrl); // 直连永远第一个
+
+        if (info.apkMirrors != null) {
+            for (String u : info.apkMirrors) {
+                if (!TextUtils.isEmpty(u) && !chain.contains(u)) chain.add(u);
+            }
+        }
+        if (info.extraMirrors != null) {
+            for (String p : info.extraMirrors) {
+                String u = MirrorResolver.wrap(p, info.apkUrl);
+                if (u != null && !chain.contains(u)) chain.add(u);
+            }
+        }
+        List<String> builtin = MirrorResolver.chain(ctx, info.apkUrl);
+        for (int i = 1; i < builtin.size(); i++) {
+            String u = builtin.get(i);
+            if (!chain.contains(u)) chain.add(u);
+        }
+        return chain;
     }
 
     /** 单条线路下载（支持断点续传） */

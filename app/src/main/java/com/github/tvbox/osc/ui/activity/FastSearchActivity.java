@@ -1087,7 +1087,7 @@ public class FastSearchActivity extends BaseActivity {
         span.setSpan(new StyleSpan(Typeface.BOLD), 0, split, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         span.setSpan(new RelativeSizeSpan(1.05f), 0, split, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         span.setSpan(new RelativeSizeSpan(0.78f), split + 1, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        span.setSpan(new ForegroundColorSpan(0xCCFFFFFF), split + 1, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        span.setSpan(new ForegroundColorSpan(0xFF8A94A6), split + 1, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         mSearchTitle.setText(span);
     }
 

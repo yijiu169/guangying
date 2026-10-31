@@ -944,7 +944,7 @@ public class VodController extends BaseController {
         seekTime.setVisibility(disPlay);
         net_play_speed.setVisibility(disPlay);
         mPlayPauseTime.setVisibility(disPlay);
-        mScreenDisplay.setTextColor(disPlay==VISIBLE?getResources().getColor(R.color.color_02F8E1): Color.WHITE);
+        mScreenDisplay.setTextColor(disPlay==VISIBLE?getResources().getColor(R.color.gy_accent): Color.WHITE);
         mScreenDisplay.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -953,7 +953,7 @@ public class VodController extends BaseController {
                 net_play_speed.setVisibility(disPlay);
                 if(disPlay==VISIBLE)mPlayPauseTime.setVisibility(disPlay);
                 Hawk.put(HawkConfig.SCREEN_DISPLAY, disPlay);
-                mScreenDisplay.setTextColor(disPlay==VISIBLE?getResources().getColor(R.color.color_02F8E1): Color.WHITE);
+                mScreenDisplay.setTextColor(disPlay==VISIBLE?getResources().getColor(R.color.gy_accent): Color.WHITE);
                 hideBottom();
             }
         });
@@ -2088,7 +2088,7 @@ public class VodController extends BaseController {
             fillPaint.setColor(Color.WHITE);
             strokePaint.setStyle(Paint.Style.STROKE);
             strokePaint.setStrokeWidth(strokeWidth);
-            strokePaint.setColor(Color.parseColor("#FF4081"));
+            strokePaint.setColor(Color.parseColor("#46D6C4"));
         }
 
         @Override

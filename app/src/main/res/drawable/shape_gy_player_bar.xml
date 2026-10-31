@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 「光影」播放器底栏背景：近不透明深色，顶边圆角 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#E006080C" />
+    <corners android:topLeftRadius="@dimen/vs_10" android:topRightRadius="@dimen/vs_10" />
+</shape>

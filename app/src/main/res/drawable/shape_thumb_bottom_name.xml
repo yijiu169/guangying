@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 「光影」直播频道名牌：深色 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <corners
         android:bottomLeftRadius="@dimen/vs_10"
         android:bottomRightRadius="@dimen/vs_10" />
-    <solid android:color="@color/color_99000000" />
+    <solid android:color="#CC06080C" />
 </shape>

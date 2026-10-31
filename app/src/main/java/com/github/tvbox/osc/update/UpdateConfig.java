@@ -74,10 +74,13 @@ public final class UpdateConfig {
     public static final int MAX_MIRROR_TRY = 4;
 
     /**
-     * GitHub 加速镜像前缀。
+     * GitHub 加速镜像前缀（内置兜底）。
      * 用法：前缀 + 原始 GitHub URL，例如
      *   https://gh-proxy.com/https://github.com/owner/repo/releases/latest/download/x.apk
      * 顺序即优先级，前面的失败自动降级到后面的。
+     *
+     * 注意：这些写死在 APK 里，社区代理经常失效。更灵活的做法是让 version.json
+     * 携带 mirrors[]（代理前缀）与 apkMirrors[]（完整地址），服务端随时可换，无需重编。
      */
     public static final String[] MIRROR_PREFIX = new String[]{
             "https://gh-proxy.com/",

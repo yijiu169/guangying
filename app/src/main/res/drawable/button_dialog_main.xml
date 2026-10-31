@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 「光影」播放器按钮：聚焦主色实心，非聚焦主色 12% -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true">
         <shape>
             <corners android:radius="@dimen/vs_5" />
-            <!--  选中按钮颜色   -->
-            <!--<solid android:color="@color/color_353744" />-->
-            <solid android:color="@color/color_1890FF" />
+            <solid android:color="@color/gy_accent" />
         </shape>
     </item>
     <item android:state_focused="false">
         <shape>
             <corners android:radius="@dimen/vs_5" />
-            <solid android:color="@color/color_CC353744" />
+            <solid android:color="@color/gy_accent_12" />
         </shape>
     </item>
 </selector>

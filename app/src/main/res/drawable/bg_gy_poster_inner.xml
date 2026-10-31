@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 卡片内层：比外框小 2dp，让 2dp 白色焦点描边完全露出 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FF141922" />
+    <corners android:radius="8dp" />
+</shape>

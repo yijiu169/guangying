@@ -1,28 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 「光影」点播进度条：主色进度 + 50% 主色缓冲 + 玻璃轨道 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 背景轨道 -->
     <item android:id="@android:id/background">
         <shape android:shape="rectangle">
-            <solid android:color="#4DFFFFFF" />
+            <solid android:color="@color/gy_glass" />
             <corners android:radius="2dp"/>
             <size android:height="3dp"/>
         </shape>
     </item>
-    <!-- 缓冲进度 -->
     <item android:id="@android:id/secondaryProgress">
         <clip>
             <shape android:shape="rectangle">
-                <solid android:color="#66FFFFFF" />
+                <solid android:color="@color/gy_accent_50" />
                 <corners android:radius="2dp"/>
                 <size android:height="3dp"/>
             </shape>
         </clip>
     </item>
-    <!-- 当前进度 -->
     <item android:id="@android:id/progress">
         <clip>
             <shape android:shape="rectangle">
-                <solid android:color="#FF4081" />
+                <solid android:color="@color/gy_accent" />
                 <corners android:radius="2dp"/>
                 <size android:height="3dp"/>
             </shape>

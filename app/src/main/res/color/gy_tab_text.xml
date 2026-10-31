@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 排行榜分类 Tab 文字颜色：聚焦=白，选中(当前分类)=主色，未选中=次要灰。 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:color="#FFFFFFFF" />
+    <item android:state_selected="true" android:color="@color/gy_accent" />
+    <item android:color="@color/gy_text_dim" />
+</selector>

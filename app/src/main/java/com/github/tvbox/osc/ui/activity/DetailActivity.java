@@ -400,7 +400,7 @@ public class DetailActivity extends BaseActivity {
                     if (vodInfo.playIndex >= 0) customSeriesScrollPos(vodInfo.playIndex);
                     if(currentSeriesGroupView != null) {
                         TextView txtView = currentSeriesGroupView.findViewById(R.id.tvSeriesFlag);
-                        txtView.setTextColor(Color.WHITE);
+                        txtView.setTextColor(getResources().getColor(R.color.gy_text));
                     }
                 }
             }
@@ -546,7 +546,7 @@ public class DetailActivity extends BaseActivity {
             @Override
             public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
                 TextView txtView = itemView.findViewById(R.id.tvSeriesFlag);
-                txtView.setTextColor(Color.WHITE);
+                txtView.setTextColor(getResources().getColor(R.color.gy_text));
 //                currentSeriesGroupView = null;
             }
 
@@ -575,7 +575,7 @@ public class DetailActivity extends BaseActivity {
                     }
                 }
             } else {
-                tvSeriesSort.setTextColor(Color.WHITE);
+                tvSeriesSort.setTextColor(getResources().getColor(R.color.gy_text));
             }
         });
         seriesGroupAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
@@ -590,7 +590,7 @@ public class DetailActivity extends BaseActivity {
                 }
                 if(currentSeriesGroupView != null) {
                     TextView txtView = currentSeriesGroupView.findViewById(R.id.tvSeriesFlag);
-                    txtView.setTextColor(Color.WHITE);
+                    txtView.setTextColor(getResources().getColor(R.color.gy_text));
                 }
                 currentSeriesGroupView = view;
                 currentSeriesGroupView.isSelected();
@@ -1002,7 +1002,7 @@ public class DetailActivity extends BaseActivity {
         if (content == null) {
             content = "";
         }
-        return label + "<font color=\"#FFFFFF\">" + content + "</font>";
+        return "<font color=\"#8A94A6\">" + label + "</font>" + "<font color=\"#C6CFDD\">" + content + "</font>";
     }
 
     private String  vod_picture="";

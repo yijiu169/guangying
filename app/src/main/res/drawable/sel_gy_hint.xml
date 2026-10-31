@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 行内提示（暂无数据 / 按 OK 重试）：聚焦时胶囊白描边 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape>
+            <solid android:color="#1FFFFFFF" />
+            <stroke
+                android:width="1dp"
+                android:color="#FFFFFFFF" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid android:color="@color/gy_glass" />
+            <stroke
+                android:width="1dp"
+                android:color="@color/gy_glass_stroke" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+</selector>

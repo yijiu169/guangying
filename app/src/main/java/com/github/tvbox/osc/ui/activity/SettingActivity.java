@@ -99,7 +99,7 @@ public class SettingActivity extends BaseActivity {
                     sortChange = true;
                     sortFocused = position;
                     TextView tvName = itemView.findViewById(R.id.tvName);
-                    tvName.setTextColor(Color.WHITE);
+                    tvName.setTextColor(getResources().getColor(R.color.gy_text));
                 }
             }
 

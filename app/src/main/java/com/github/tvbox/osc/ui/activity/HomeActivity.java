@@ -620,7 +620,7 @@ public class HomeActivity extends BaseActivity {
         // 如果处于 VOD 删除模式，则退出该模式并刷新界面
         if (HawkConfig.hotVodDelete) {
             HawkConfig.hotVodDelete = false;
-            UserFragment.homeHotVodAdapter.notifyDataSetChanged();
+            if (UserFragment.homeHotVodAdapter != null) UserFragment.homeHotVodAdapter.notifyDataSetChanged();
             return;
         }
 

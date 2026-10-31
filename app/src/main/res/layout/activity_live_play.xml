@@ -808,7 +808,7 @@
 			android:paddingTop="5dp"
 			android:paddingBottom="5dp"
 			android:gravity="center"
-			android:background="@drawable/shape_dialog_filter_bg"
+			android:background="@drawable/shape_gy_player_bar"
 			android:orientation="horizontal">
 
 			<ImageView

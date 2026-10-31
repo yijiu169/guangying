@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 「光影」搜索输入框：玻璃填充 + 玻璃描边 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <corners android:radius="10mm" />
+    <solid android:color="@color/gy_glass" />
     <stroke
         android:width="@dimen/vs_2"
-        android:color="#99FFFFFF" />
+        android:color="@color/gy_glass_stroke" />
 </shape>

@@ -33,8 +33,9 @@
         android:theme="@style/AppTheme.NoActionBar"
         android:usesCleartextTraffic="true">
 
+        <!-- 「光影」原生首页：应用入口 -->
         <activity
-            android:name=".ui.activity.HomeActivity"
+            android:name=".ui.activity.GyHomeActivity"
             android:exported="true"
             android:screenOrientation="sensorLandscape">
             <intent-filter>
@@ -42,6 +43,22 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 「光影」排行榜：首页左侧 rail「排行」入口 -->
+        <activity
+            android:name=".ui.activity.GyRankActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape" />
+
+        <!-- TVBox 原始首页：保留可独立启动，不再作为桌面入口 -->
+        <activity
+            android:name=".ui.activity.HomeActivity"
+            android:exported="true"
+            android:screenOrientation="sensorLandscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
 

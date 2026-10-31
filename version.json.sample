@@ -1,0 +1,23 @@
+{
+  "versionCode": 26103014,
+  "versionName": "2026.10.30.14",
+  "tag": "v2026.10.30.14",
+  "notes": "TVBox 2026.10.30.14（光影版）",
+  "apk": "TVBox-latest.apk",
+  "size": 33657688,
+  "sha256": "453b9dedb2edf184deb16dec1a431daef45e282c7e30a87a6d253f6b3e646151",
+  "force": false,
+  "publishedAt": "2026-10-30T14:33:20Z",
+
+  "mirrors": [
+    "https://gh-proxy.com/",
+    "https://ghfast.top/",
+    "https://ghproxy.net/",
+    "https://github.moeyy.xyz/",
+    "https://hub.gitmirror.com/"
+  ],
+
+  "apkMirrors": [
+    "https://你的自建CDN.example.com/TVBox-latest.apk"
+  ]
+}

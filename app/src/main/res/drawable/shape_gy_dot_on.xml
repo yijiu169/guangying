@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hero 轮换指示点：当前页（拉长的胶囊） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/gy_accent" />
+    <corners android:radius="999dp" />
+</shape>

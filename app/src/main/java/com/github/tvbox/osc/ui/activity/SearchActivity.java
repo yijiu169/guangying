@@ -467,7 +467,7 @@ public class SearchActivity extends BaseActivity {
                 int availableWidth = historyWordGrid.getWidth();
                 if (availableWidth <= 0) availableWidth = llHistoryWord.getWidth();
                 float textSize = getResources().getDimension(R.dimen.ts_22);
-                int textColor = getResources().getColor(R.color.color_FFFFFF);
+                int textColor = getResources().getColor(R.color.gy_text);
                 LinearLayout row = null;
                 int rowWidth = 0;
                 for (int i = 0; i < history.size(); i++) {

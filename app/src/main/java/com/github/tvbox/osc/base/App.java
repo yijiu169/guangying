@@ -58,8 +58,16 @@ public class App extends MultiDexApplication {
                 .setSupportDP(false)
                 .setSupportSP(false)
                 .setSupportSubunits(Subunits.MM);
-        PlayerHelper.init();
-        QuickJSLoader.init();
+        // 预览构建会剔除 arm 原生库（x86_64 模拟器无对应 so），此处兜底，
+        // 正式包原生库齐全，行为不变。
+        try {
+            PlayerHelper.init();
+        } catch (Throwable ignored) {
+        }
+        try {
+            QuickJSLoader.init();
+        } catch (Throwable ignored) {
+        }
         FileUtils.cleanPlayerCache();
         UpdateManager.attach(this);
     }

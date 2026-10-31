@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 「光影」统一焦点框：聚焦青绿描边 + 12% 主色填充；非聚焦仅玻璃微底 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true">
         <shape>
             <corners android:radius="10mm" />
-            <stroke android:width="2mm" android:color="@color/color_FFFFFF" />
-            <solid android:color="@color/color_6C3D3D3D" />
+            <stroke android:width="2mm" android:color="@color/gy_accent" />
+            <solid android:color="@color/gy_accent_12" />
         </shape>
     </item>
     <item android:state_focused="false">
         <shape>
             <corners android:radius="10mm" />
-            <solid android:color="@color/color_6C3D3D3D"/>
+            <solid android:color="@color/gy_glass" />
         </shape>
     </item>
 </selector>

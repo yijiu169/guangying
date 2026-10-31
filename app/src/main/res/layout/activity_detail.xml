@@ -9,6 +9,7 @@
         android:id="@+id/llLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/gy_bg"
         android:orientation="vertical">
 
         <LinearLayout
@@ -59,7 +60,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:textColor="@android:color/white"
+                    android:textColor="@color/gy_text"
                     android:textSize="@dimen/ts_28" />
 
                 <LinearLayout
@@ -78,7 +79,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:singleLine="true"
-                        android:textColor="@color/color_CCFFFFFF"
+                        android:textColor="@color/gy_text_dim"
                         android:textSize="@dimen/ts_20" />
 
                     <TextView
@@ -91,7 +92,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:singleLine="true"
-                        android:textColor="@color/color_CCFFFFFF"
+                        android:textColor="@color/gy_text_dim"
                         android:textSize="@dimen/ts_20" />
 
                     <TextView
@@ -104,7 +105,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:singleLine="true"
-                        android:textColor="@color/color_CCFFFFFF"
+                        android:textColor="@color/gy_text_dim"
                         android:textSize="@dimen/ts_20" />
 
                     <TextView
@@ -117,7 +118,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:singleLine="true"
-                        android:textColor="@color/color_CCFFFFFF"
+                        android:textColor="@color/gy_text_dim"
                         android:textSize="@dimen/ts_20" />
 
                     <TextView
@@ -130,7 +131,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:singleLine="true"
-                        android:textColor="@color/color_CCFFFFFF"
+                        android:textColor="@color/gy_text_dim"
                         android:textSize="@dimen/ts_20" />
                 </LinearLayout>
 
@@ -142,7 +143,7 @@
                     android:focusable="false"
                     android:ellipsize="end"
                     android:singleLine="true"
-                    android:textColor="@color/color_CCFFFFFF"
+                    android:textColor="@color/gy_text_dim"
                     android:textSize="@dimen/ts_20" />
 
                 <TextView
@@ -153,7 +154,7 @@
                     android:focusable="false"
                     android:ellipsize="end"
                     android:singleLine="true"
-                    android:textColor="@color/color_CCFFFFFF"
+                    android:textColor="@color/gy_text_dim"
                     android:textSize="@dimen/ts_20" />
 
                 <TextView
@@ -163,7 +164,7 @@
                     android:ellipsize="end"
                     android:singleLine="true"
                     android:focusable="false"
-                    android:textColor="@color/color_CCFFFFFF"
+                    android:textColor="@color/gy_text_dim"
                     android:textSize="@dimen/ts_20" />
 
 
@@ -175,7 +176,7 @@
                     android:ellipsize="end"
                     android:lineSpacingMultiplier="1.2"
                     android:maxLines="3"
-                    android:textColor="@color/color_CCFFFFFF"
+                    android:textColor="@color/gy_text_dim"
                     android:textSize="@dimen/ts_20" />
 
                 <Space
@@ -194,7 +195,7 @@
                         android:layout_height="@dimen/vs_40"
                         android:layout_marginEnd="@dimen/vs_10"
                         android:layout_marginRight="@dimen/vs_10"
-                        android:background="@drawable/button_detail_play"
+                        android:background="@drawable/sel_gy_button"
                         android:focusable="true"
                         android:nextFocusUp="@id/previewPlayerBlock"
                         android:gravity="center"
@@ -208,7 +209,7 @@
                         android:layout_height="@dimen/vs_40"
                         android:layout_marginEnd="@dimen/vs_10"
                         android:layout_marginRight="@dimen/vs_10"
-                        android:background="@drawable/button_detail_quick_search"
+                        android:background="@drawable/sel_gy_button"
                         android:focusable="true"
                         android:gravity="center"
                         android:text="快速搜索"
@@ -221,7 +222,7 @@
                         android:layout_height="@dimen/vs_40"
                         android:layout_marginEnd="@dimen/vs_10"
                         android:layout_marginRight="@dimen/vs_10"
-                        android:background="@drawable/button_detail_sort"
+                        android:background="@drawable/sel_gy_button"
                         android:focusable="true"
                         android:gravity="center"
                         android:text="简介"
@@ -234,7 +235,7 @@
                         android:layout_height="@dimen/vs_40"
                         android:layout_marginEnd="@dimen/vs_10"
                         android:layout_marginRight="@dimen/vs_10"
-                        android:background="@drawable/button_detail_collect"
+                        android:background="@drawable/sel_gy_button"
                         android:focusable="true"
                         android:gravity="center"
                         android:text="加入收藏"
@@ -245,7 +246,7 @@
                         android:id="@+id/tvChangeSource"
                         android:layout_width="@dimen/vs_120"
                         android:layout_height="@dimen/vs_40"
-                        android:background="@drawable/button_detail_change_source"
+                        android:background="@drawable/sel_gy_button"
                         android:focusable="true"
                         android:gravity="center"
                         android:text="切源"
@@ -279,7 +280,7 @@
                 android:layout_marginLeft="@dimen/vs_10"
                 android:gravity="center"
                 android:text="暂无播放数据"
-                android:textColor="@android:color/white"
+                android:textColor="@color/gy_text_dim"
                 android:textSize="@dimen/ts_24" />
         </LinearLayout>
 

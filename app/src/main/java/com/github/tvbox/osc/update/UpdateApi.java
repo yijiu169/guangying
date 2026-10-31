@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * 版本信息来源。
@@ -18,6 +19,11 @@ import java.util.List;
  *   https://api.github.com/repos/{owner}/{repo}/releases/latest
  *
  * 两条通道对外都经过「直连 + 镜像」候选链，任何一个能通就能拿到版本信息。
+ *
+ * version.json 还可携带可选字段（服务端可改，无需重编 APK）：
+ *   - mirrors[]     : 额外的 GitHub 代理前缀，下载 APK 时包裹直连地址；
+ *   - apkMirrors[]  : 直接可用的完整 APK 下载地址（自建 CDN），优先级最高，
+ *                     可完全脱离 GitHub，是「直连不上」时最稳的兜底。
  */
 public final class UpdateApi {
 
@@ -63,6 +69,10 @@ public final class UpdateApi {
                 info.apkUrl = String.format(
                         "https://github.com/%s/%s/releases/latest/download/%s",
                         UpdateConfig.owner(), UpdateConfig.repo(), apkName);
+
+                // 服务端可在 version.json 里附加镜像：无需重编 APK 即可更换/增补镜像
+                info.extraMirrors = parseStringArray(o, "mirrors");
+                info.apkMirrors = parseStringArray(o, "apkMirrors");
 
                 if (TextUtils.isEmpty(info.versionName) && info.versionCode <= 0) continue;
                 MirrorResolver.rememberGood(ctx, url);
@@ -136,5 +146,18 @@ public final class UpdateApi {
     private static String optString(JSONObject o, String key, String def) {
         String v = o.optString(key, def);
         return v == null ? def : v;
+    }
+
+    /** 从 JSON 数组里取出非空字符串列表（mirrors / apkMirrors 用） */
+    private static List<String> parseStringArray(JSONObject o, String key) {
+        List<String> list = new ArrayList<>();
+        JSONArray a = o.optJSONArray(key);
+        if (a != null) {
+            for (int i = 0; i < a.length(); i++) {
+                String s = a.optString(i, "");
+                if (!TextUtils.isEmpty(s)) list.add(s);
+            }
+        }
+        return list;
     }
 }

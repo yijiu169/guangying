@@ -3,8 +3,8 @@ apply plugin: 'com.android.application'
 
 /* ===== 自动更新：仓库与版本号（由 apply-to-tvbox.sh 注入）===== */
 def ghToken = ""
-def ghOwner = "YOUR_GITHUB_NAME"
-def ghRepo = "TVBoxOSC"
+def ghOwner = "yijiu169"
+def ghRepo = "guangying"
 def localProps = rootProject.file("local.properties")
 if (localProps.exists()) {
     def p = new Properties()
@@ -20,13 +20,14 @@ android {
     compileSdkVersion 33
 
     defaultConfig {
-        applicationId 'com.github.tvbox.osc.jun'
+        applicationId 'com.guangying.tv'
         targetSdkVersion 28
         versionCode vCode
         versionName vName
-        buildConfigField "String", "GH_TOKEN", '"${ghToken}"'
-        buildConfigField "String", "UPDATE_OWNER", '"${ghOwner}"'
-        buildConfigField "String", "UPDATE_REPO", '"${ghRepo}"'
+        buildConfigField "String", "GH_TOKEN", "\"${ghToken}\""
+        buildConfigField "String", "UPDATE_OWNER", "\"${ghOwner}\""
+        buildConfigField "String", "UPDATE_REPO", "\"${ghRepo}\""
+        buildConfigField "boolean", "PREVIEW_MODE", "${project.hasProperty('previewNoNative')}"
         multiDexEnabled true
         //设置room的Schema的位置
         javaCompileOptions {
@@ -125,6 +126,15 @@ android {
                 keyAlias System.getenv("KEY_ALIAS") ?: ""
                 keyPassword System.getenv("KEY_PASSWORD") ?: ""
             }
+        }
+    }
+
+    /* 预览构建：-PpreviewNoNative 时剔除原生库，
+       让 APK 能装进 x86_64 模拟器（工程自带的 .so 只有 arm 架构）。
+       仅用于界面预览，播放功能在模拟器里不可用。 */
+    packagingOptions {
+        if (project.hasProperty('previewNoNative')) {
+            exclude 'lib/**'
         }
     }
 

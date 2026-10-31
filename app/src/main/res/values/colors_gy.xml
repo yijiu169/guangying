@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 「光影」首页设计规范色板（与设计稿一一对应，不要随意新增） -->
+<resources>
+    <!-- 页面背景 -->
+    <color name="gy_bg">#FF06080C</color>
+    <!-- 主色：焦点 / 强调 -->
+    <color name="gy_accent">#FF46D6C4</color>
+    <!-- 金色：评分 -->
+    <color name="gy_gold">#FFE8B84B</color>
+    <!-- 正文灰 -->
+    <color name="gy_text">#FFC6CFDD</color>
+    <!-- 次要灰 -->
+    <color name="gy_text_dim">#FF8A94A6</color>
+    <!-- 主色 12%（焦点面板底） -->
+    <color name="gy_accent_12">#1F46D6C4</color>
+    <!-- 主色 50%（焦点描边） -->
+    <color name="gy_accent_50">#8046D6C4</color>
+    <!-- 玻璃面板：rgba(255,255,255,0.06) -->
+    <color name="gy_glass">#0FFFFFFF</color>
+    <!-- 玻璃描边：rgba(255,255,255,0.08) -->
+    <color name="gy_glass_stroke">#14FFFFFF</color>
+</resources>

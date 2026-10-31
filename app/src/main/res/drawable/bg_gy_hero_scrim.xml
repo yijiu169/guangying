@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hero 压暗层：顶部留出画面，底部收敛到页面底色 #06080C，
+     让 Hero 与下方海报墙无接缝地衔接 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="270"
+        android:centerColor="#8C06080C"
+        android:endColor="#FF06080C"
+        android:startColor="#D906080C" />
+</shape>

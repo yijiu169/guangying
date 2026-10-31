@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 海报卡片外框：聚焦时 2dp 纯白描边，圆角 10dp。
+     描边由 shape stroke 画在卡片自身边界上，因此白边始终贴着卡片圆角，
+     不会出现比卡片更大的直角白框（不要改成外层 padding 扩张的做法）。 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape>
+            <solid android:color="#00000000" />
+            <stroke
+                android:width="2dp"
+                android:color="#FFFFFFFF" />
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid android:color="#00000000" />
+            <stroke
+                android:width="1dp"
+                android:color="#1FFFFFFF" />
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+</selector>

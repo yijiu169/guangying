@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 「光影」设置行焦点：聚焦青绿描边 + 12% 主色填充 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true">
         <shape>
             <corners android:radius="@dimen/vs_5" />
-            <solid android:color="@color/color_6632364E" />
-            <stroke android:width="@dimen/vs_2" android:color="@android:color/white" />
+            <solid android:color="@color/gy_accent_12" />
+            <stroke android:width="@dimen/vs_2" android:color="@color/gy_accent" />
         </shape>
     </item>
     <item android:state_focused="false">
         <shape>
             <corners android:radius="@dimen/vs_5" />
-            <solid android:color="@color/color_6632364E" />
+            <solid android:color="@color/gy_glass" />
         </shape>
     </item>
 </selector>

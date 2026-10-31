@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 「光影」直播台标号：深色 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <corners android:radius="10mm" />
-    <solid android:color="@color/color_66000000" />
+    <solid android:color="#CC06080C" />
 </shape>

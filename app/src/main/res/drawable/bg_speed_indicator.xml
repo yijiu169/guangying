@@ -1,6 +1,6 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#66000000" />  <!-- 半透明黑色背景 -->
-    <corners android:radius="12dp" />     <!-- 圆角 -->
+    <solid android:color="@color/gy_glass" />
+    <corners android:radius="12dp" />
     <padding
         android:left="8dp"
         android:top="4dp"

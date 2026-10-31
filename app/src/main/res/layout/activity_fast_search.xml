@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/gy_bg"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:orientation="vertical">
@@ -28,7 +29,7 @@
             android:lines="2"
             android:maxLines="2"
             android:text="&#x51C6;&#x5907;&#x641C;&#x7D22;&#10;&#x7ED3;&#x679C; 0"
-            android:textColor="@android:color/white"
+            android:textColor="@color/gy_text"
             android:textSize="@dimen/ts_16" />
 
         <com.owen.tvrecyclerview.widget.TvRecyclerView

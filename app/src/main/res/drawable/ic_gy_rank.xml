@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 左侧导航图标：排行 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M170.7,554.7 L341.3,554.7 L341.3,896 L170.7,896 Z" />
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M426.7,341.3 L597.3,341.3 L597.3,896 L426.7,896 Z" />
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M682.7,469.3 L853.3,469.3 L853.3,896 L682.7,896 Z" />
+</vector>

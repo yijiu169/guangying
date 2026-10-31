@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 左侧导航图标：我的 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M352,352 a160,160 0 1,1 320,0 a160,160 0 1,1 -320,0 z" />
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M192,896 L192,832 C192,709.3 335.3,608 512,608 C688.7,608 832,709.3 832,832 L832,896 Z" />
+</vector>
