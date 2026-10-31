@@ -67,6 +67,15 @@ jobs:
           echo "$KS_B64" | base64 -d > release.keystore
           ls -l release.keystore
 
+      - name: Prepare local.properties
+        run: |
+          # :pyramid 的 chaquo 插件在配置阶段会强制读取 local.properties，缺失即崩。
+          # CI 上该文件被 gitignore，需在此生成一个最小版本（sdk.dir 指到 runner 的 SDK）。
+          SDK="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          echo "sdk.dir=$SDK" > local.properties
+          if [ -n "${ANDROID_NDK_HOME:-}" ]; then echo "ndk.dir=$ANDROID_NDK_HOME" >> local.properties; fi
+          cat local.properties
+
       - name: Build release APK (java flavor)
         env:
           VERSION_CODE: ${{ steps.ver.outputs.code }}
