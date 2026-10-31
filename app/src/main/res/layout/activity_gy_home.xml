@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  「光影」原生 TV 首页
-  ┌──────────────────────────────────────────────────┐
-  │ rail(88dp) │ Hero：满幅渐变，占屏高 46%           │
-  │  首页      │ 标题 28sp / ★评分·年份·正片 / 简介   │
-  │  搜索      │ ● ● ● ●（轮换指示点）                │
-  │  排行      ├──────────────────────────────────────┤
-  │  我的      │ 豆瓣热门  [卡片][卡片][卡片]…        │
-  │  设置      │ 最新上架  [卡片][卡片][卡片]…        │
-  │            │ 高分佳作  [卡片][卡片][卡片]…        │
-  └──────────────────────────────────────────────────┘
+  「光影」原生 TV 首页（对齐 tvbox-ui-prototype.html 的 #view-home）
+  ┌────────────┬──────────────────────────────────────────────┐
+  │ rail 128dp │ statusbar 54dp： 1080P · 自动        20:31   │
+  │  光影      ├──────────────────────────────────────────────┤
+  │  首页      │ Hero 46%：海报140x210 + kicker/标题/评分/简介 │
+  │  搜索      │           ● ● ● ●（轮换指示点）              │
+  │  排行      ├──────────────────────────────────────────────┤
+  │  我的      │ 豆瓣热门 [实时]  [卡片][卡片][卡片]…         │
+  │  设置      │ 最新上架 [最新]  [卡片][卡片][卡片]…         │
+  └────────────┴──────────────────────────────────────────────┘
   Hero 与行区用 layout_weight 46/54 实现「占屏幕高 46%」，不写死 px。
+  圆角（Hero 18dp / 海报 12dp）由 Java 里的 OutlineProvider 处理（minSdk 19 守卫），
+  不在 XML 里写 API21+ 属性。
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/gyRoot"
@@ -20,19 +22,24 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
+    <!-- ==================== 主内容区（右侧，避开 128dp rail） ==================== -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingStart="150dp"
+        android:paddingTop="54dp"
+        android:paddingEnd="26dp">
 
-        <!-- ==================== Hero ==================== -->
+        <!-- Hero -->
         <FrameLayout
             android:id="@+id/heroArea"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="46"
+            android:layout_marginBottom="16dp"
             android:clipChildren="false"
             android:clipToPadding="false">
 
@@ -40,94 +47,118 @@
                 android:id="@+id/ivHeroBackdrop"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:alpha="0.32"
+                android:alpha="0.55"
                 android:contentDescription="@null"
                 android:scaleType="centerCrop" />
 
-            <!-- 随焦点同步换色的渐变层（Java 里按条目重建 GradientDrawable） -->
+            <!-- 横向暗化 scrim（Java 里按条目重建 GradientDrawable，左深右浅） -->
             <View
                 android:id="@+id/heroTint"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_gy_hero_scrim" />
-
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:orientation="vertical"
-                android:paddingStart="116dp"
-                android:paddingTop="12dp"
-                android:paddingEnd="48dp"
-                android:paddingBottom="20dp">
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="34dp"
+                android:paddingTop="26dp"
+                android:paddingEnd="34dp"
+                android:paddingBottom="26dp">
 
-                <TextView
-                    android:id="@+id/tvHeroTitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="2"
-                    android:shadowColor="#B3000000"
-                    android:shadowDx="0"
-                    android:shadowDy="2"
-                    android:shadowRadius="6"
-                    android:textColor="@color/color_FFFFFF"
-                    android:textSize="28sp"
-                    android:textStyle="bold" />
+                <!-- 左侧海报缩略图 140 x 210（2:3），可点击进详情 -->
+                <ImageView
+                    android:id="@+id/ivHeroPoster"
+                    android:layout_width="140dp"
+                    android:layout_height="210dp"
+                    android:contentDescription="@null"
+                    android:scaleType="centerCrop" />
 
+                <!-- 右侧信息块 -->
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_marginStart="26dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/tvHeroRate"
+                        android:id="@+id/tvHeroKicker"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
-                        android:textColor="@color/gy_gold"
-                        android:textSize="14sp"
+                        android:text="豆瓣 · 最新影音"
+                        android:textColor="@color/gy_accent"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/tvHeroMeta"
+                        android:id="@+id/tvHeroTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:shadowColor="#B3000000"
+                        android:shadowDx="0"
+                        android:shadowDy="2"
+                        android:shadowRadius="6"
+                        android:textColor="@color/color_FFFFFF"
+                        android:textSize="34sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:includeFontPadding="false"
-                        android:textColor="@color/gy_text_dim"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tvHeroRate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:includeFontPadding="false"
+                            android:textColor="@color/gy_gold"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvHeroMeta"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:includeFontPadding="false"
+                            android:textColor="@color/gy_text"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvHeroIntro"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:ellipsize="end"
+                        android:lineSpacingExtra="4dp"
+                        android:maxLines="3"
+                        android:maxWidth="560dp"
+                        android:textColor="@color/gy_text_desc"
                         android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:id="@+id/heroDots"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal" />
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvHeroIntro"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:ellipsize="end"
-                    android:lineSpacingExtra="4dp"
-                    android:maxLines="2"
-                    android:maxWidth="620dp"
-                    android:textColor="@color/gy_text"
-                    android:textSize="13sp" />
-
-                <LinearLayout
-                    android:id="@+id/heroDots"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal" />
             </LinearLayout>
         </FrameLayout>
 
-        <!-- ==================== 行区（可纵向滚动，3 行内容按需滚动） ==================== -->
+        <!-- 行区（可纵向滚动，3 行内容按需滚动） -->
         <!-- 注意：这里必须保持 clipChildren=true（默认），否则滚动后上方的内容会溢出盖住 Hero。
              卡片放大的溢出由 rowContainer / 每一行的 body / recycler 的 clipChildren=false 承担。 -->
         <ScrollView
@@ -136,9 +167,7 @@
             android:layout_height="0dp"
             android:layout_weight="54"
             android:focusable="false"
-            android:paddingStart="116dp"
             android:paddingTop="6dp"
-            android:paddingEnd="28dp"
             android:scrollbars="none">
 
             <LinearLayout
@@ -152,16 +181,92 @@
         </ScrollView>
     </LinearLayout>
 
-    <!-- ==================== 左侧 rail（宽 88dp，整列垂直居中） ==================== -->
+    <!-- ==================== 顶部状态条 54dp（右侧：1080P · 自动 + 实时时钟） ==================== -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:layout_gravity="top"
+        android:clipChildren="false"
+        android:paddingStart="146dp"
+        android:paddingEnd="26dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvStatusMeta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:text="1080P · 自动"
+                android:textColor="@color/gy_text_dim"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvStatusClock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:includeFontPadding="false"
+                android:text="--:--"
+                android:textColor="@color/gy_text_dim"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- ==================== 左侧 rail（宽 128dp，品牌 + 导航项） ==================== -->
     <LinearLayout
         android:id="@+id/railBar"
-        android:layout_width="88dp"
+        android:layout_width="128dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:gravity="center_vertical"
         android:orientation="vertical"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp" />
+        android:paddingStart="10dp"
+        android:paddingTop="56dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="18dp">
+
+        <!-- 品牌：logo 46dp + 「光影」 -->
+        <LinearLayout
+            android:id="@+id/railBrand"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/ivRailLogo"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:contentDescription="@null"
+                android:scaleType="fitCenter"
+                android:src="@drawable/app_icon" />
+
+            <TextView
+                android:id="@+id/tvRailBrand"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:includeFontPadding="false"
+                android:text="光影"
+                android:textColor="#FFE9EEF5"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- rail 右侧 1dp 发丝分隔线（对齐原型 .rail border-right），画在 rail 之上 -->
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:layout_marginStart="127dp"
+        android:background="#14FFFFFF" />
 </FrameLayout>

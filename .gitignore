@@ -8,3 +8,5 @@ release.keystore
 keystore.b64
 .idea/
 .DS_Store
+
+app/proguardMapping.txt

@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 「光影」首页设计规范色板（与设计稿一一对应，不要随意新增） -->
+<!-- 「光影」设计规范色板（与设计稿 .tv / .rail / .poster 一一对应） -->
 <resources>
-    <!-- 页面背景 -->
-    <color name="gy_bg">#FF06080C</color>
-    <!-- 主色：焦点 / 强调 -->
+    <!-- 页面背景 #0A0C10 -->
+    <color name="gy_bg">#FF0A0C10</color>
+    <!-- 主色：焦点 / 强调 #46D6C4 -->
     <color name="gy_accent">#FF46D6C4</color>
-    <!-- 金色：评分 -->
-    <color name="gy_gold">#FFE8B84B</color>
-    <!-- 正文灰 -->
-    <color name="gy_text">#FFC6CFDD</color>
-    <!-- 次要灰 -->
-    <color name="gy_text_dim">#FF8A94A6</color>
+    <!-- 金色：评分 #E8B94F -->
+    <color name="gy_gold">#FFE8B94F</color>
+    <!-- 豆瓣绿 #3CB963（行标题标签 / rail 指示条渐变末端） -->
+    <color name="gy_douban">#FF3CB963</color>
+    <!-- 正文 #EEF2F7 -->
+    <color name="gy_text">#FFEEF2F7</color>
+    <!-- 次要灰 #98A4B6 -->
+    <color name="gy_text_dim">#FF98A4B6</color>
+    <!-- Hero 简介 #C4CDDB -->
+    <color name="gy_text_desc">#FFC4CDDB</color>
     <!-- 主色 12%（焦点面板底） -->
     <color name="gy_accent_12">#1F46D6C4</color>
     <!-- 主色 50%（焦点描边） -->
@@ -19,4 +23,6 @@
     <color name="gy_glass">#0FFFFFFF</color>
     <!-- 玻璃描边：rgba(255,255,255,0.08) -->
     <color name="gy_glass_stroke">#14FFFFFF</color>
+    <!-- 豆瓣绿描边（行标题标签 border 40%） -->
+    <color name="gy_douban_40">#663CB963</color>
 </resources>

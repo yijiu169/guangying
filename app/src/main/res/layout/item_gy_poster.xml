@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 「光影」海报卡片：100dp x 150dp（2:3），圆角 10dp。
-     焦点白边由根节点的 sel_gy_poster_frame 在卡片自身边界绘制，
-     内层容器再内缩 2dp，保证 2dp 白边完整可见且贴合圆角。 -->
+<!-- 「光影」海报卡片：140dp x 210dp（2:3），间距 14dp。
+     焦点白边（2dp）由根节点的 sel_gy_poster_frame 在卡片自身边界绘制，
+     内层容器再内缩 2dp，保证白边完整可见且贴合圆角。
+     叠加层与原型 .poster 一致：左上金色评分角标 / 右上年份小标 / 底部片名渐变遮罩。 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="100dp"
-    android:layout_height="150dp"
-    android:layout_marginEnd="10dp"
+    android:layout_width="140dp"
+    android:layout_height="210dp"
+    android:layout_marginEnd="14dp"
     android:background="@drawable/sel_gy_poster_frame"
     android:clipChildren="false"
     android:clipToPadding="false"
@@ -26,9 +27,10 @@
             android:contentDescription="@null"
             android:scaleType="centerCrop" />
 
+        <!-- 底部片名渐变遮罩（transparent 45% → 78% 黑） -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="46dp"
+            android:layout_height="88dp"
             android:layout_gravity="bottom"
             android:background="@drawable/bg_gy_card_scrim" />
 
@@ -37,29 +39,52 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginStart="7dp"
-            android:layout_marginEnd="7dp"
-            android:layout_marginBottom="6dp"
+            android:layout_marginStart="9dp"
+            android:layout_marginEnd="9dp"
+            android:layout_marginBottom="9dp"
             android:ellipsize="end"
             android:includeFontPadding="false"
-            android:maxLines="1"
+            android:maxLines="2"
+            android:shadowColor="#99000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="4"
             android:textColor="#F2F6FB"
-            android:textSize="10sp" />
+            android:textSize="12.5sp"
+            android:textStyle="bold" />
 
+        <!-- 左上：金色评分角标（内容由 adapter 写入，前缀 ★ 由 Activity 补齐） -->
         <TextView
             android:id="@+id/tv_rate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="top|start"
-            android:layout_margin="6dp"
+            android:layout_margin="7dp"
+            android:background="@drawable/bg_poster_badge"
+            android:includeFontPadding="false"
+            android:paddingStart="7dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="7dp"
+            android:paddingBottom="3dp"
+            android:textColor="@color/gy_gold"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <!-- 右上：年份小标（内容由 Activity 在卡片挂载时写入） -->
+        <TextView
+            android:id="@+id/tv_year"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="8dp"
             android:background="@drawable/bg_poster_badge"
             android:includeFontPadding="false"
             android:paddingStart="6dp"
-            android:paddingEnd="6dp"
             android:paddingTop="2dp"
+            android:paddingEnd="6dp"
             android:paddingBottom="2dp"
-            android:textColor="@color/gy_gold"
-            android:textSize="10sp"
-            android:textStyle="bold" />
+            android:textColor="#FFDFE6F0"
+            android:textSize="10.5sp"
+            android:visibility="gone" />
     </FrameLayout>
 </FrameLayout>

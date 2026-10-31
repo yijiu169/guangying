@@ -15,6 +15,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.github.tvbox.osc.R;
+import com.github.tvbox.osc.douban.DoubanImage;
 import com.github.tvbox.osc.douban.DoubanItem;
 
 /**
@@ -38,8 +39,8 @@ public class GyPosterRowAdapter extends BaseQuickAdapter<DoubanItem, BaseViewHol
         void onCardFocused(int rowIndex, int position, DoubanItem item);
     }
 
-    private static final float FOCUS_SCALE = 1.08f;
-    private static final float FOCUS_LIFT_DP = 4f;
+    private static final float FOCUS_SCALE = 1.12f;
+    private static final float FOCUS_LIFT_DP = 6f;
     private static final int DURATION = 160;
     private static final float POSTER_CORNER_DP = 8f;
 
@@ -78,11 +79,11 @@ public class GyPosterRowAdapter extends BaseQuickAdapter<DoubanItem, BaseViewHol
             rate.setText(item.rate);
         }
 
-        if (item == null || TextUtils.isEmpty(item.coverUrl())) {
+        if (item == null || TextUtils.isEmpty(DoubanImage.direct(item.cover))) {
             cover.setImageResource(R.drawable.bg_poster_placeholder);
         } else {
             Glide.with(root.getContext())
-                    .load(item.coverUrl())
+                    .load(DoubanImage.req(item.cover))
                     .transition(DrawableTransitionOptions.withCrossFade(180))
                     .placeholder(R.drawable.bg_poster_placeholder)
                     .error(R.drawable.bg_poster_placeholder)

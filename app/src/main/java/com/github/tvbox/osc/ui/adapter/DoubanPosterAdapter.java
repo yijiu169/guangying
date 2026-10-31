@@ -34,7 +34,7 @@ public class DoubanPosterAdapter extends BaseQuickAdapter<DoubanItem, BaseViewHo
         year.setText(item.year == null || item.year.isEmpty() ? "" : item.year);
 
         Glide.with(root.getContext())
-                .load(item.coverUrl())
+                .load(com.github.tvbox.osc.douban.DoubanImage.req(item.cover))
                 .transition(DrawableTransitionOptions.withCrossFade(180))
                 .placeholder(R.drawable.bg_poster_placeholder)
                 .error(R.drawable.bg_poster_placeholder)

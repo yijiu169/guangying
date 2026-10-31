@@ -64,11 +64,11 @@ public class GyRankAdapter extends BaseQuickAdapter<DoubanItem, BaseViewHolder> 
             rate.setText(item.rate);
         }
 
-        if (item == null || TextUtils.isEmpty(item.coverUrl())) {
+        if (item == null || TextUtils.isEmpty(com.github.tvbox.osc.douban.DoubanImage.direct(item.cover))) {
             cover.setImageResource(R.drawable.bg_poster_placeholder);
         } else {
             Glide.with(root.getContext())
-                    .load(item.coverUrl())
+                    .load(com.github.tvbox.osc.douban.DoubanImage.req(item.cover))
                     .transition(DrawableTransitionOptions.withCrossFade(180))
                     .placeholder(R.drawable.bg_poster_placeholder)
                     .error(R.drawable.bg_poster_placeholder)

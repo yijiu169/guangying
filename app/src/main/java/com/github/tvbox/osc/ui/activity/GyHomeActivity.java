@@ -1,6 +1,8 @@
 package com.github.tvbox.osc.ui.activity;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
+import android.graphics.Outline;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -13,6 +15,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -22,6 +25,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
@@ -34,9 +38,12 @@ import com.github.tvbox.osc.ui.adapter.GyPosterRowAdapter;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,7 +51,8 @@ import java.util.concurrent.Executors;
 /**
  * 「光影」原生 TV 首页。
  *
- * <p>结构：左侧 88dp 竖向导航 rail + 右侧主内容区（Hero 占屏高 46%，下方三行海报墙）。
+ * <p>结构：左侧 128dp 竖向导航 rail（品牌 + 玻璃 pill 焦点态）+ 顶部 54dp 状态条
+ * + 右侧主内容区（Hero 占屏高 46%，下方三行海报墙）。
  *
  * <p>焦点模型：
  * <ul>
@@ -78,13 +86,17 @@ public class GyHomeActivity extends BaseActivity {
 
     /* ==================== 视图 ==================== */
 
+    private View heroArea;
     private ImageView ivHeroBackdrop;
+    private ImageView ivHeroPoster;
     private View heroTint;
+    private TextView tvHeroKicker;
     private TextView tvHeroTitle;
     private TextView tvHeroRate;
     private TextView tvHeroMeta;
     private TextView tvHeroIntro;
     private LinearLayout heroDots;
+    private TextView tvStatusClock;
     private ScrollView rowScroll;
     private LinearLayout rowContainer;
     private LinearLayout railBar;
@@ -119,6 +131,15 @@ public class GyHomeActivity extends BaseActivity {
         }
     };
 
+    /** 状态条实时时钟：每 15 秒刷新一次 HH:mm（不追求秒级，避免无谓唤醒）。 */
+    private final Runnable clockRunnable = new Runnable() {
+        @Override
+        public void run() {
+            updateClock();
+            heroHandler.postDelayed(this, 15000L);
+        }
+    };
+
     /* ==================== 生命周期 ==================== */
 
     @Override
@@ -128,16 +149,37 @@ public class GyHomeActivity extends BaseActivity {
 
     @Override
     protected void init() {
+        heroArea = findViewById(R.id.heroArea);
         ivHeroBackdrop = findViewById(R.id.ivHeroBackdrop);
+        ivHeroPoster = findViewById(R.id.ivHeroPoster);
         heroTint = findViewById(R.id.heroTint);
+        tvHeroKicker = findViewById(R.id.tvHeroKicker);
         tvHeroTitle = findViewById(R.id.tvHeroTitle);
         tvHeroRate = findViewById(R.id.tvHeroRate);
         tvHeroMeta = findViewById(R.id.tvHeroMeta);
         tvHeroIntro = findViewById(R.id.tvHeroIntro);
         heroDots = findViewById(R.id.heroDots);
+        tvStatusClock = findViewById(R.id.tvStatusClock);
         rowScroll = findViewById(R.id.rowScroll);
         rowContainer = findViewById(R.id.rowContainer);
         railBar = findViewById(R.id.railBar);
+
+        applyRoundedOutline(heroArea, 18);
+        applyRoundedOutline(ivHeroPoster, 12);
+        setLetterSpacing(tvHeroKicker, 0.22f);
+        setLetterSpacing(findViewById(R.id.tvRailBrand), 0.32f);
+
+        // rail 面板底色：linear-gradient(180deg, rgba(13,16,22,.96), rgba(9,11,16,.9))
+        railBar.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{0xF50D1016, 0xE6090B10}));
+
+        // Hero 海报可点：进当前条目的详情（Hero 不放按钮，点海报即可）
+        ivHeroPoster.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openItem(currentHeroItem);
+            }
+        });
 
         buildRail();
         buildRows();
@@ -149,12 +191,15 @@ public class GyHomeActivity extends BaseActivity {
         super.onResume();
         resumed = true;
         restartHeroRotation();
+        heroHandler.removeCallbacks(clockRunnable);
+        clockRunnable.run();
     }
 
     @Override
     protected void onPause() {
         resumed = false;
         heroHandler.removeCallbacks(heroRotateRunnable);
+        heroHandler.removeCallbacks(clockRunnable);
         super.onPause();
     }
 
@@ -189,58 +234,97 @@ public class GyHomeActivity extends BaseActivity {
         };
         final String[] labels = new String[]{"首页", "搜索", "排行", "我的", "设置"};
 
-        railBar.removeAllViews();
+        // 品牌块（railBrand）写在 XML 里，这里只清掉上一次生成的导航项
+        while (railBar.getChildCount() > 1) {
+            railBar.removeViewAt(railBar.getChildCount() - 1);
+        }
         railItems.clear();
 
         for (int i = 0; i < labels.length; i++) {
             final int index = i;
 
-            LinearLayout item = new LinearLayout(this);
-            item.setOrientation(LinearLayout.VERTICAL);
-            item.setGravity(Gravity.CENTER);
+            // 根：可聚焦，聚焦时铺一层玻璃 pill（GradientDrawable，不新增 drawable 资源）
+            FrameLayout item = new FrameLayout(this);
             item.setFocusable(true);
             item.setFocusableInTouchMode(true);
-            item.setBackgroundResource(R.drawable.sel_gy_rail_item);
-            item.setPadding(0, dp(8), 0, dp(8));
-
+            item.setClipChildren(false);
+            item.setClipToPadding(false);
             LinearLayout.LayoutParams itemLp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            itemLp.bottomMargin = dp(22);
+            itemLp.bottomMargin = dp(4);
             item.setLayoutParams(itemLp);
 
+            // 图标 + 标签（竖向居中）
+            LinearLayout inner = new LinearLayout(this);
+            inner.setOrientation(LinearLayout.VERTICAL);
+            inner.setGravity(Gravity.CENTER);
+            inner.setClipChildren(false);
+            inner.setClipToPadding(false);
+            inner.setPadding(dp(4), dp(13), dp(4), dp(13));
+            item.addView(inner, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+            // 图标容器：底层辉光 + 上层图标（用同图放大 + accent 半透明近似 drop-shadow）
+            FrameLayout iconWrap = new FrameLayout(this);
+            LinearLayout.LayoutParams iconWrapLp = new LinearLayout.LayoutParams(dp(24), dp(24));
+            iconWrapLp.gravity = Gravity.CENTER_HORIZONTAL;
+            iconWrap.setLayoutParams(iconWrapLp);
+            iconWrap.setClipChildren(false);
+
+            ImageView glow = new ImageView(this);
+            Drawable glowDrawable = loadDrawableSafely(icons[index]);
+            if (glowDrawable != null) {
+                glow.setImageDrawable(glowDrawable);
+            }
+            glow.setColorFilter(getResources().getColor(R.color.gy_accent), PorterDuff.Mode.SRC_IN);
+            glow.setAlpha(0f);
+            glow.setScaleX(1.35f);
+            glow.setScaleY(1.35f);
+            FrameLayout.LayoutParams glowLp = new FrameLayout.LayoutParams(dp(23), dp(23));
+            glowLp.gravity = Gravity.CENTER;
+            iconWrap.addView(glow, glowLp);
+
             ImageView icon = new ImageView(this);
-            LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(24), dp(24));
-            iconLp.gravity = Gravity.CENTER_HORIZONTAL;
-            icon.setLayoutParams(iconLp);
-            Drawable drawable = loadDrawableSafely(icons[index]);
-            if (drawable != null) {
-                icon.setImageDrawable(drawable);
+            Drawable iconDrawable = loadDrawableSafely(icons[index]);
+            if (iconDrawable != null) {
+                icon.setImageDrawable(iconDrawable);
             }
             icon.setColorFilter(getResources().getColor(R.color.gy_text_dim), PorterDuff.Mode.SRC_IN);
+            FrameLayout.LayoutParams iconLp = new FrameLayout.LayoutParams(dp(23), dp(23));
+            iconLp.gravity = Gravity.CENTER;
+            iconWrap.addView(icon, iconLp);
+
+            inner.addView(iconWrap);
 
             TextView label = new TextView(this);
             label.setText(labels[index]);
-            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f);
             label.setGravity(Gravity.CENTER);
             label.setIncludeFontPadding(false);
+            label.getPaint().setFakeBoldText(true);
             label.setTextColor(getResources().getColor(R.color.gy_text_dim));
             LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             labelLp.gravity = Gravity.CENTER_HORIZONTAL;
             labelLp.topMargin = dp(6);
             label.setLayoutParams(labelLp);
+            inner.addView(label);
 
-            item.addView(icon);
-            item.addView(label);
+            // 左侧竖向渐变指示条（accent → 豆瓣绿），仅聚焦时可见
+            View indicator = new View(this);
+            indicator.setBackground(buildIndicator());
+            indicator.setVisibility(View.INVISIBLE);
+            FrameLayout.LayoutParams indicatorLp = new FrameLayout.LayoutParams(dp(3), dp(32));
+            indicatorLp.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+            indicatorLp.leftMargin = dp(3);
+            item.addView(indicator, indicatorLp);
 
-            final RailItemHolder holder = new RailItemHolder(item, icon, label);
+            final RailItemHolder holder = new RailItemHolder(item, icon, label, glow, indicator, buildPill());
             item.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {
                     railFocusIndex = index;
-                    v.animate().scaleX(hasFocus ? 1.04f : 1f).scaleY(hasFocus ? 1.04f : 1f)
-                            .setDuration(140).start();
-                    holder.tint(hasFocus);
+                    holder.setFocused(hasFocus);
                 }
             });
             item.setOnClickListener(new View.OnClickListener() {
@@ -264,6 +348,72 @@ public class GyHomeActivity extends BaseActivity {
             railItems.add(holder);
             railBar.addView(item);
         }
+    }
+
+    /** rail 聚焦态玻璃 pill：linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.05)) */
+    private GradientDrawable buildPill() {
+        GradientDrawable pill = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{0x21FFFFFF, 0x0DFFFFFF});
+        pill.setCornerRadius(dp(14));
+        return pill;
+    }
+
+    /** rail 聚焦态指示条：accent → 豆瓣绿 的竖向渐变。 */
+    private GradientDrawable buildIndicator() {
+        GradientDrawable indicator = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{getResources().getColor(R.color.gy_accent),
+                        getResources().getColor(R.color.gy_douban)});
+        indicator.setCornerRadius(dp(2));
+        return indicator;
+    }
+
+    /** 只在 5.0+ 圆角裁剪；minSdk 19 上直接跳过（保持直角，不影响功能）。 */
+    private void applyRoundedOutline(View view, final int cornerDp) {
+        if (view == null) {
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            OutlineSetup.apply(view, cornerDp);
+        }
+    }
+
+    /** 5.0+ 专属类单独承载，避免 minSdk 19 设备在类初始化阶段碰到 OutlineProvider。 */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private static final class OutlineSetup {
+
+        private OutlineSetup() {
+        }
+
+        static void apply(final View view, final int cornerDp) {
+            view.setOutlineProvider(new ViewOutlineProvider() {
+                @Override
+                public void getOutline(View v, Outline outline) {
+                    outline.setRoundRect(0, 0, v.getWidth(), v.getHeight(), dp(v, cornerDp));
+                }
+            });
+            view.setClipToOutline(true);
+        }
+
+        private static int dp(View view, int value) {
+            return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value,
+                    view.getResources().getDisplayMetrics());
+        }
+    }
+
+    /** 字距（em）：仅 5.0+ 支持，低版本忽略。 */
+    private void setLetterSpacing(TextView view, float em) {
+        if (view == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+        view.setLetterSpacing(em);
+    }
+
+    /** 状态条时钟：HH:mm。 */
+    private void updateClock() {
+        if (tvStatusClock == null) {
+            return;
+        }
+        tvStatusClock.setText(new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date()));
     }
 
     private void onRailItemClicked(int index) {
@@ -327,51 +477,58 @@ public class GyHomeActivity extends BaseActivity {
     /* ==================== 海报行 ==================== */
 
     private void buildRows() {
-        // tag 沿用豆瓣真实分类值（DoubanApi.TAGS），标题用设计稿文案
-        addRow(0, DoubanApi.TAGS[0], "豆瓣热门", "实时口碑");
-        addRow(1, DoubanApi.TAGS[1], "最新上架", "刚刚上线");
-        addRow(2, DoubanApi.TAGS[2], "高分佳作", "评分最高");
+        // tag 沿用豆瓣真实分类值（DoubanApi.TAGS），标题与绿色小标签用设计稿文案
+        addRow(0, DoubanApi.TAGS[0], "豆瓣热门", "实时");
+        addRow(1, DoubanApi.TAGS[1], "最新上架", "最新");
+        addRow(2, DoubanApi.TAGS[2], "高分佳作", "豆瓣");
     }
 
-    private void addRow(final int index, String tag, String title, String subTitle) {
+    private void addRow(final int index, String tag, String title, String chipText) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.VERTICAL);
         row.setClipChildren(false);
         row.setClipToPadding(false);
         LinearLayout.LayoutParams rowLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        rowLp.bottomMargin = dp(22);
+        rowLp.bottomMargin = dp(30);
         row.setLayoutParams(rowLp);
 
-        // 行标题 14sp bold 白 + 右侧 11sp 灰 tag
+        // 行标题 19sp bold 白 + 豆瓣绿小标签（对齐原型 .row-head h2 / .tag）
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(dp(4), 0, 0, 0);
 
         TextView tvTitle = new TextView(this);
         tvTitle.setText(title);
-        tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        tvTitle.setTextColor(getResources().getColor(R.color.color_FFFFFF));
+        tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19);
+        tvTitle.setTextColor(getResources().getColor(R.color.gy_text));
         tvTitle.getPaint().setFakeBoldText(true);
         tvTitle.setIncludeFontPadding(false);
         header.addView(tvTitle);
 
-        TextView tvSub = new TextView(this);
-        tvSub.setText(subTitle);
-        tvSub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        tvSub.setTextColor(getResources().getColor(R.color.gy_text_dim));
-        tvSub.setIncludeFontPadding(false);
-        LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(
+        TextView tvChip = new TextView(this);
+        tvChip.setText(chipText);
+        tvChip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        tvChip.setTextColor(getResources().getColor(R.color.gy_douban));
+        tvChip.setIncludeFontPadding(false);
+        tvChip.setPadding(dp(8), dp(2), dp(8), dp(2));
+        GradientDrawable chipBg = new GradientDrawable();
+        chipBg.setColor(0x00000000);
+        chipBg.setStroke(dp(1), getResources().getColor(R.color.gy_douban_40));
+        chipBg.setCornerRadius(dp(999));
+        tvChip.setBackground(chipBg);
+        LinearLayout.LayoutParams chipLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        subLp.leftMargin = dp(8);
-        tvSub.setLayoutParams(subLp);
-        header.addView(tvSub);
+        chipLp.leftMargin = dp(12);
+        tvChip.setLayoutParams(chipLp);
+        header.addView(tvChip);
 
-        // 卡片区：162dp = 150dp 卡片 + 上下各 5dp 余量（聚焦放大 1.08 后不裁切）
+        // 卡片区：140x210 海报 + 聚焦放大余量（上下各 12dp 缓冲，放大后不裁切）
         FrameLayout body = new FrameLayout(this);
         LinearLayout.LayoutParams bodyLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(162));
-        bodyLp.topMargin = dp(10);
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(236));
+        bodyLp.topMargin = dp(8);
         body.setLayoutParams(bodyLp);
         body.setClipChildren(false);
         body.setClipToPadding(false);
@@ -383,12 +540,49 @@ public class GyHomeActivity extends BaseActivity {
         recycler.setLayoutManager(new V7LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recycler.setClipChildren(false);
         recycler.setClipToPadding(false);
-        recycler.setPadding(0, dp(5), 0, dp(5));
+        recycler.setPadding(0, dp(12), 0, dp(12));
         recycler.setFocusable(true);
         recycler.setMemoryFocus(true);
 
         final GyPosterRowAdapter adapter = new GyPosterRowAdapter(index);
         recycler.setAdapter(adapter);
+
+        // 卡片上的叠加信息（右上年份小标 / 评分角标 ★ 前缀）在挂载时补齐。
+        // 行项绑定逻辑仍由 GyPosterRowAdapter 负责，这里只做幂等补字，不修改 adapter。
+        recycler.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
+            @Override
+            public void onChildViewAttachedToWindow(View child) {
+                int position = recycler.getChildAdapterPosition(child);
+                List<DoubanItem> data = adapter.getData();
+                if (position < 0 || data == null || position >= data.size()) {
+                    return;
+                }
+                DoubanItem dataItem = data.get(position);
+
+                TextView year = (TextView) child.findViewById(R.id.tv_year);
+                if (year != null) {
+                    if (dataItem == null || TextUtils.isEmpty(dataItem.year)) {
+                        year.setVisibility(View.GONE);
+                    } else {
+                        year.setText(dataItem.year);
+                        year.setVisibility(View.VISIBLE);
+                    }
+                }
+
+                TextView rate = (TextView) child.findViewById(R.id.tv_rate);
+                if (rate != null && rate.getVisibility() == View.VISIBLE) {
+                    CharSequence text = rate.getText();
+                    if (!TextUtils.isEmpty(text) && !text.toString().startsWith("★")) {
+                        rate.setText("★ " + text);
+                    }
+                }
+            }
+
+            @Override
+            public void onChildViewDetachedFromWindow(View child) {
+                // 无需处理
+            }
+        });
 
         final TextView emptyView = new TextView(this);
         emptyView.setText(ROW_TAG_EMPTY_HINT);
@@ -618,36 +812,51 @@ public class GyHomeActivity extends BaseActivity {
         tvHeroTitle.setText(TextUtils.isEmpty(item.title) ? "光影" : item.title);
 
         if (TextUtils.isEmpty(item.rate)) {
-            tvHeroRate.setText("★ 暂无评分");
+            tvHeroRate.setText("★ 暂无");
             tvHeroRate.setTextColor(getResources().getColor(R.color.gy_text_dim));
         } else {
             tvHeroRate.setText("★ " + item.rate);
             tvHeroRate.setTextColor(getResources().getColor(R.color.gy_gold));
         }
 
-        StringBuilder meta = new StringBuilder("· ");
+        // 副行：年份 · 类型（subtitle 形如「2023 / 剧情」，两种都有时用 · 连接）
+        StringBuilder meta = new StringBuilder();
         if (!TextUtils.isEmpty(item.year)) {
-            meta.append(item.year).append(" · ");
+            meta.append(item.year);
         }
-        meta.append("正片");
-        tvHeroMeta.setText(meta.toString());
+        if (!TextUtils.isEmpty(item.subtitle)) {
+            if (meta.length() > 0) {
+                meta.append(" · ");
+            }
+            meta.append(item.subtitle);
+        }
+        tvHeroMeta.setText(meta.length() == 0 ? "光影精选" : meta.toString());
 
         tvHeroIntro.setText(heroIntroText(item));
         if (TextUtils.isEmpty(item.intro)) {
             loadHeroIntroAsync(item);
         }
 
-        String cover = item.coverUrl();
+        // 背景（暗化模糊感由 alpha + 横向 scrim 实现）与左侧海报缩略图共用同一张封面
+        String cover = com.github.tvbox.osc.douban.DoubanImage.direct(item.cover);
         if (TextUtils.isEmpty(cover)) {
             ivHeroBackdrop.setImageResource(R.drawable.bg_poster_placeholder);
+            ivHeroPoster.setImageResource(R.drawable.bg_poster_placeholder);
         } else {
             Glide.with(this)
-                    .load(cover)
+                    .load(com.github.tvbox.osc.douban.DoubanImage.req(item.cover))
                     .transition(DrawableTransitionOptions.withCrossFade(260))
                     .placeholder(R.drawable.bg_poster_placeholder)
                     .error(R.drawable.bg_poster_placeholder)
                     .centerCrop()
                     .into(ivHeroBackdrop);
+            Glide.with(this)
+                    .load(com.github.tvbox.osc.douban.DoubanImage.req(item.cover))
+                    .transition(DrawableTransitionOptions.withCrossFade(260))
+                    .placeholder(R.drawable.bg_poster_placeholder)
+                    .error(R.drawable.bg_poster_placeholder)
+                    .centerCrop()
+                    .into(ivHeroPoster);
         }
 
         applyHeroTint(item);
@@ -679,7 +888,7 @@ public class GyHomeActivity extends BaseActivity {
         return -1;
     }
 
-    /** 简介 2 行；没有简介时退化为类型副标题，避免 Hero 出现空行。 */
+    /** 简介最多 3 行；没有简介时退化为类型副标题，避免 Hero 出现空行。 */
     private String heroIntroText(DoubanItem item) {
         if (item == null) {
             return "";
@@ -693,16 +902,17 @@ public class GyHomeActivity extends BaseActivity {
         return "暂无简介，按 OK 搜索该影片";
     }
 
-    /** 背景渐变随条目换色：同一部片稳定取色，切换时 240ms 淡入。 */
+    /** 横向暗化 scrim（左深右浅）+ 随条目换色的轻微色调，切换时 240ms 淡入。 */
     private void applyHeroTint(DoubanItem item) {
         if (heroTint == null || item == null) {
             return;
         }
         String key = (item.id == null ? "" : item.id) + "|" + (item.title == null ? "" : item.title);
         int tint = HERO_TINTS[Math.abs(key.hashCode()) % HERO_TINTS.length];
-        int start = (tint & 0x00FFFFFF) | 0xCC000000;
+        int start = (tint & 0x00FFFFFF) | 0xE6000000;
         GradientDrawable gradient = new GradientDrawable(
-                GradientDrawable.Orientation.TL_BR, new int[]{start, 0x0006080C});
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[]{start, 0x9906080C, 0x1A06080C});
         heroTint.setBackground(gradient);
         heroTint.setAlpha(0.35f);
         heroTint.animate().alpha(1f).setDuration(240).start();
@@ -926,24 +1136,33 @@ public class GyHomeActivity extends BaseActivity {
         }
     }
 
-    /** 一个 rail 导航项。 */
+    /** 一个 rail 导航项：图标 + 标签 + 聚焦辉光 + 左侧渐变指示条。 */
     private static final class RailItemHolder {
         final View root;
         final ImageView icon;
         final TextView label;
+        final ImageView glow;
+        final View indicator;
+        final Drawable pill;
 
-        RailItemHolder(View root, ImageView icon, TextView label) {
+        RailItemHolder(View root, ImageView icon, TextView label, ImageView glow,
+                       View indicator, Drawable pill) {
             this.root = root;
             this.icon = icon;
             this.label = label;
+            this.glow = glow;
+            this.indicator = indicator;
+            this.pill = pill;
         }
 
-        void tint(boolean focused) {
-            int color = focused
-                    ? root.getResources().getColor(R.color.gy_accent)
-                    : root.getResources().getColor(R.color.gy_text_dim);
+        /** 对齐原型 .rail-item.focused：玻璃 pill + 指示条 + 图标辉光 + 文字/图标变白。 */
+        void setFocused(boolean focused) {
+            int color = focused ? 0xFFFFFFFF : root.getResources().getColor(R.color.gy_text_dim);
             icon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
             label.setTextColor(color);
+            root.setBackground(focused ? pill : null);
+            indicator.setVisibility(focused ? View.VISIBLE : View.INVISIBLE);
+            glow.setAlpha(focused ? 0.45f : 0f);
         }
     }
 }
